@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 import time
 
 
@@ -11,7 +12,17 @@ def relu_derivative(x):
     return np.where(x > 0, 1.0, 0.01)
 
 
+def shuffle(a, b):
+    c = copy.deepcopy(a)
 
+    for i in range(len(c.layers)):
+        mask = np.random.random(a.layers[i].matrix.shape) < 0.5
+
+        c.layers[i].matrix = np.where(
+            mask,
+            a.layers[i].matrix,
+            b.layers[i].matrix)
+    return c
 
 
 
@@ -71,8 +82,18 @@ class Layer:
         self.matrix -= (self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon))               #ADAM
         self.bias -= self.learning_rate * self.neuron_gradients
         
-    def mutate(self):
-        pass
+    
+    
+    def mutate(self, chance=0.05, strength=0.1):
+        mask = np.random.random(self.matrix.shape) < chance
+        mutation = np.random.normal(0, strength, self.matrix.shape)
+        self.matrix += mutation * mask
+
+        mask = np.random.random(self.bias.shape) < chance
+        mutation = np.random.normal(0, strength, self.bias.shape)
+        self.bias += mutation * mask
+
+
 
 
 class AI:
@@ -84,7 +105,7 @@ class AI:
         self.pattern = pattern
         self.inputs = inputs
         self.prediction = None
-
+        self.score = 0
         self.layers = []
 
         self.layers.append(Layer(pattern[0], inputs, algorythm=al))
@@ -138,6 +159,10 @@ class AI:
 
             layer.learn()
 
+    def mutate(self, chance = 0.05, strength = 0.1):
+        for layer in self.layers:
+            layer.mutate(chance, strength)    
+        
 
     def save(self, name):
         arrays = {}
@@ -151,7 +176,6 @@ class AI:
             arrays[f"m{i}"] = layer.m_weights
             arrays[f"v{i}"] = layer.v_weights
             arrays[f"t{i}"] = layer.t
-
         np.savez(name, **arrays)
 
 
@@ -182,7 +206,60 @@ class AI:
 
 
 
-ai = AI(2, [8, 8, 8, 8, 8, 8, 1])
+
+class Evolution:
+    def __init__(self, number, *parameters):
+        self.number = number
+        self.ais = []
+        for a in range(number):
+            ai = AI(*parameters)
+            ai.mutate()
+            self.ais.append(ai)
+            
+        self.best = []
+        
+    
+    def rating (self, program):
+        for ai in self.ais:
+            ai.score = program(ai)
+            
+        self.best = sorted(self.ais, key=lambda ai: ai.score, reverse=True)[:2]
+        
+    def generation (self):
+        child = shuffle(self.best[0], self.best[1])
+        self.ais = []
+        for a in range(self.number - 2):
+            f = copy.deepcopy(child)
+            f.mutate()
+            self.ais.append(f)
+        self.ais.append(self.best[0])
+        self.ais.append(self.best[1])
+            
+            
+            
+           
+        
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+evolution = Evolution(
+    100,
+    2,
+    [8, 8, 8, 8, 8, 8, 1]
+)
+
 
 data = [
     ([10, 0], 0),
@@ -197,21 +274,47 @@ data = [
     ([17.83, 3.71], 31.82)
 ]
 
-for epoch in range(10000):
-    for inputs, target in data:
-        ai.calculate(inputs)
-        ai.learn([target])
 
-    if epoch % 1000 == 0:
-        print("epoch:", epoch)
+def test(ai):
+    score = 0
+
+    for inputs, target in data:
+        prediction = ai.calculate(inputs)[0]
+
+        error = abs(prediction - target)
+
+        score -= error
+
+    return score
+
+
+for generation in range(1000):
+
+    evolution.rating(test)
+
+    if generation % 10 == 0:
+        print(
+            "generation:", generation,
+            "score:", evolution.best[0].score
+        )
+
+    evolution.generation()
+
 
 print("\n--- TEST ---")
 
+best = evolution.best[0]
+
 for inputs, target in data:
-    prediction = ai.calculate(inputs)
+    prediction = best.calculate(inputs)[0]
 
     print(
         "input:", inputs,
         "target:", target,
         "prediction:", prediction
     )
+    
+    
+    
+    
+    
