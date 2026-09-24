@@ -226,10 +226,10 @@ class Evolution:
         self.best = sorted(self.ais, key=lambda ai: ai.score, reverse=True)[:2]
         
     def generation (self):
-        child = shuffle(self.best[0], self.best[1])
+
         self.ais = []
         for a in range(self.number - 2):
-            f = copy.deepcopy(child)
+            f = shuffle(self.best[0], self.best[1])
             f.mutate()
             self.ais.append(f)
         self.ais.append(self.best[0])
