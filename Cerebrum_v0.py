@@ -116,7 +116,10 @@ class AI:
         self.prediction = results
         return results
 
-    def learn(self, information):
+    def learn(self, inputs, information):
+        self.calculate(inputs)
+        
+        
         for h, layer in enumerate(self.layers[::-1]):
             nh = len(self.layers) - (1 + h)
             if h == 0:
@@ -166,25 +169,50 @@ class AI:
             arrays[f"t{i}"] = layer.t
         np.savez(name, **arrays)
 
+    # def load(self, name):
+    #     data = np.load(name, allow_pickle=False)
+
+    #     self.pattern = data["pattern"].tolist()
+    #     self.layers = []
+    #     self.layers.append(Layer(self.pattern[0], self.inputs))
+
+    #     for i in range(1, len(self.pattern)):
+    #         self.layers.append(Layer(self.pattern[i], self.pattern[i - 1]))
+
+    #     for i, layer in enumerate(self.layers):
+    #         layer.matrix = data[f"w{i}"]
+    #         layer.bias = data[f"b{i}"]
+
+    #         # Adam
+    #         layer.m_weights = data[f"m{i}"]
+    #         layer.v_weights = data[f"v{i}"]
+    #         layer.t = int(data[f"t{i}"])
+    
     def load(self, name):
-        data = np.load(name)
+        data = np.load(name, allow_pickle=False)
 
         self.pattern = data["pattern"].tolist()
         self.layers = []
-        self.layers.append(Layer(self.pattern[0], self.inputs))
 
-        for i in range(1, len(self.pattern)):
-            self.layers.append(Layer(self.pattern[i], self.pattern[i - 1]))
+        for i, neurons in enumerate(self.pattern):
+            if i == 0:
+                inputs = self.inputs
+            else:
+                inputs = self.pattern[i - 1]
 
-        for i, layer in enumerate(self.layers):
-            layer.matrix = data[f"w{i}"]
-            layer.bias = data[f"b{i}"]
+            layer = Layer(neurons, inputs)
+
+            layer.matrix = data[f"w{i}"].copy()
+            layer.bias = data[f"b{i}"].copy()
 
             # Adam
-            layer.m_weights = data[f"m{i}"]
-            layer.v_weights = data[f"v{i}"]
+            layer.m_weights = data[f"m{i}"].copy()
+            layer.v_weights = data[f"v{i}"].copy()
             layer.t = int(data[f"t{i}"])
 
+            self.layers.append(layer)
+
+        data.close()
     
     
     
