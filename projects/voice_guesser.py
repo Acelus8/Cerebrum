@@ -17,7 +17,7 @@ AI_FOLDER = "C:/Users/tiger/Desktop/Python/Cerebrum/projects/ai/voice_ai.npz"
 DATASET_FOLDER = "C:/Users/tiger/Desktop/Python/Cerebrum/projects/dataset"
 
 Voice_Ai = Cerebrum_v0.AI(2041, [64, 64, 32, 32, 4])
-# Voice_Ai.load(AI_FOLDER)
+Voice_Ai.load(AI_FOLDER)
 
 
 d = {0: "nothing", 1: "fireball", 2: "freeze", 3: "divine light"}
@@ -47,7 +47,7 @@ class Guesser:
         
         
 
-    def learn(self, times=10000):
+    def learn(self, times=100):
         files = [
             file for file in os.listdir(DATASET_FOLDER)
             if file.endswith(".npy")
