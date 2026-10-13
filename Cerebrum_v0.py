@@ -10,6 +10,13 @@ def relu(x):  # leaky relu
 def relu_derivative(x):
     return np.where(x > 0, 1.0, 0.01)
 
+def softmax(x):
+    exp_x = np.exp(x - np.max(x))
+    return exp_x / np.sum(exp_x)
+
+
+
+
 
 def shuffle(a, b):
     c = copy.deepcopy(a)
@@ -23,7 +30,7 @@ def shuffle(a, b):
 
 class Layer:
     def __init__(
-        self, neurons, inputs, RW=1, LR=0.003, CLIPPING=[-100, 100], algorythm="Learn"
+        self, neurons, inputs, RW=1, LR=0.003, CLIPPING=[-100, 100], algorythm="Learn", processing_alhorythm="MSE"
     ):
         if algorythm == "Learn":
             self.beta1 = 0.9
@@ -34,6 +41,8 @@ class Layer:
             self.clipping = CLIPPING
             self.learning_rate = LR
 
+        self.pross_alg = processing_alhorythm
+        
         self.matrix = np.random.randn(neurons, inputs) * np.sqrt(2 / inputs) * RW
         self.bias = np.zeros(neurons)
 
@@ -49,7 +58,13 @@ class Layer:
     def calculate(self, inputs, End=False):
         self.z = self.matrix @ inputs + self.bias
         if End:
-            self.neuron_activations = self.z
+            if self.pross_alg =="MSE":
+                self.neuron_activations = self.z
+            elif self.pross_alg =="CrossEntropy":
+                self.neuron_activations = softmax(self.z)
+                
+            
+            
         else:
             self.neuron_activations = relu(self.z)
 
@@ -88,21 +103,28 @@ class Layer:
 
 
 class AI:
-    def __init__(self, inputs, pattern=None, al="Learn", open=None):
-
+    def __init__(self, inputs, pattern=None, al="Learn", open=None, p_a="MSE"):
+        self.al = al
+        self.p_a = p_a
+        
+        
         if pattern is None:
             pattern = [3, 3, 3, 1]
 
         self.pattern = pattern
         self.inputs = inputs
         self.prediction = None
+        
+        
+        
         self.score = 0
+        
         self.layers = []
 
-        self.layers.append(Layer(pattern[0], inputs, algorythm=al))
+        self.layers.append(Layer(pattern[0], inputs, algorythm=al, processing_alhorythm=p_a))
 
         for h in range(1, len(pattern)):
-            self.layers.append(Layer(pattern[h], pattern[h - 1], algorythm=al))
+            self.layers.append(Layer(pattern[h], pattern[h - 1], algorythm=al, processing_alhorythm=p_a))
 
         if open:
             self.load(open)
@@ -169,24 +191,6 @@ class AI:
             arrays[f"t{i}"] = layer.t
         np.savez(name, **arrays)
 
-    # def load(self, name):
-    #     data = np.load(name, allow_pickle=False)
-
-    #     self.pattern = data["pattern"].tolist()
-    #     self.layers = []
-    #     self.layers.append(Layer(self.pattern[0], self.inputs))
-
-    #     for i in range(1, len(self.pattern)):
-    #         self.layers.append(Layer(self.pattern[i], self.pattern[i - 1]))
-
-    #     for i, layer in enumerate(self.layers):
-    #         layer.matrix = data[f"w{i}"]
-    #         layer.bias = data[f"b{i}"]
-
-    #         # Adam
-    #         layer.m_weights = data[f"m{i}"]
-    #         layer.v_weights = data[f"v{i}"]
-    #         layer.t = int(data[f"t{i}"])
     
     def load(self, name):
         data = np.load(name, allow_pickle=False)
@@ -200,7 +204,7 @@ class AI:
             else:
                 inputs = self.pattern[i - 1]
 
-            layer = Layer(neurons, inputs)
+            layer = Layer(neurons,inputs, algorythm=self.al, processing_alhorythm=self.p_a)
 
             layer.matrix = data[f"w{i}"].copy()
             layer.bias = data[f"b{i}"].copy()

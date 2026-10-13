@@ -16,8 +16,8 @@ SECONDS = 5
 AI_FOLDER = "C:/Users/tiger/Desktop/Python/Cerebrum/projects/ai/voice_ai.npz"
 DATASET_FOLDER = "C:/Users/tiger/Desktop/Python/Cerebrum/projects/dataset"
 
-Voice_Ai = Cerebrum_v0.AI(2041, [64, 64, 32, 32, 4])
-Voice_Ai.load(AI_FOLDER)
+Voice_Ai = Cerebrum_v0.AI(2041, [64, 64, 32, 32, 4], p_a="CrossEntropy")
+# Voice_Ai.load(AI_FOLDER)
 
 
 d = {0: "nothing", 1: "fireball", 2: "freeze", 3: "divine light"}
