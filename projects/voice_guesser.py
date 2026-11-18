@@ -43,6 +43,14 @@ class Guesser:
         print("divine_light:", guess[3])
         
         
+        spells = {0:"nothing",
+                  1:"fireball",
+                  2:"freeze",
+                  3:"divine_light"}
+        
+        entr.insert(spells[guess.index(max(guess))]+" "+str(max(guess)))
+        
+        
         
         
         
@@ -131,6 +139,9 @@ btnlearn = tk.Button(root, width=30, height=5, text="learn", bg="yellow", comman
 btnlearn.pack(pady=40)
 btnsave = tk.Button(root, width=30, height=5, text="save", bg="green", command=guesser.save)
 btnsave.pack(pady=60)
+
+entr = tk.Entry(root)
+entr.pack(pady=80)
 
 
 

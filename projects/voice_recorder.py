@@ -190,11 +190,11 @@ def auto_add_to_dataset(audio):
 
     number = get_next_dataset_number()
 
-    dataset_path = os.path.join(DATASET_FOLDER, f"{number}.npy")
+    dataset_path = os.path.join(DATASET_FOLDER, f"{label}{number}.npy")
 
     np.save(dataset_path, data, allow_pickle=True)
 
-    dataset_status.config(text=f"Added: {number}.npy")
+    dataset_status.config(text=f"Added: {label}{number}.npy")
 
 
 def add_to_dataset():
@@ -230,11 +230,11 @@ def add_to_dataset():
 
         number = get_next_dataset_number()
 
-        dataset_path = os.path.join(DATASET_FOLDER, f"{number}.npy")
+        dataset_path = os.path.join(DATASET_FOLDER, f"{label}{number}.npy")
 
         np.save(dataset_path, data, allow_pickle=True)
 
-        dataset_status.config(text=f"Added: {number}.npy")
+        dataset_status.config(text=f"Added: {label}{number}.npy")
 
     except Exception as e:
         dataset_status.config(text=f"Error: {e}")
